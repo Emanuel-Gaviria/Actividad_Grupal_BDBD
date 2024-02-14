@@ -1,0 +1,91 @@
+// Crear nodos con sus atributos
+
+LOAD CSV WITH HEADERS FROM "file:///actividad_grupal/Terrazas.csv" AS csv_line
+
+CREATE (t:Terraza { 
+	id_local: toInteger(csv_line.id_local), 
+	id_periodo: toInteger(csv_line.id_periodo_terraza), 
+	periodo: csv_line.desc_periodo_terraza,
+	id_situación: toInteger(csv_line.id_situacion_terraza), 
+	situación: csv_line.desc_situacion_terraza,
+	superficie: toFloat(csv_line.Superficie_ES),
+	clase: csv_line.DESC_CLASE,
+	nombre: csv_line.DESC_NOMBRE,
+	número: toInteger(csv_line.num_terraza),
+	calificación: csv_line.cal_terraza,
+	ubicación: csv_line.desc_ubicacion_terraza,
+	hora_inicial_lunes_a_jueves_estacional: time(csv_line.hora_ini_LJ_es),
+	hora_final_lunes_a_jueves_estacional: time(csv_line.hora_fin_LJ_es),
+	hora_inicial_lunes_a_jueves: time(csv_line.hora_ini_LJ_ra),
+	hora_final_lunes_a_jueves: time(csv_line.hora_fin_LJ_ra),
+	hora_inicial_viernes_y_sábado_estacional: time(csv_line.hora_ini_VS_es),
+	hora_final_viernes_y_sábado_estacional: time(csv_line.hora_fin_VS_es),
+	hora_inicial_viernes_y_sábado: time(csv_line.hora_ini_VS_ra),
+	hora_final_viernes_y_sábado: time(csv_line.hora_fin_VS_ra),
+	mesas_auxiliar_estacional: toInteger(csv_line.mesas_aux_es),
+	mesas_auxiliar: toInteger(csv_line.mesas_aux_ra),
+	mesas_estacional: toInteger(csv_line.mesas_es),
+	mesas: toInteger(csv_line.mesas_ra),
+	sillas_estacional: toInteger(csv_line.sillas_es),
+	sillas: toInteger(csv_line.sillas_ra)
+})
+
+MERGE (l:Local {id_local: toInteger(csv_line.id_local)})
+SET 	l.número_edificio = toInteger(csv_line.num_edificio), 
+	l.coordenada_x = toFloat(csv_line.coordenada_x_local),
+	l.coordenada_y = toFloat(csv_line.coordenada_y_local),
+	l.situación = csv_line.desc_situacion_local,
+	l.nombre = csv_line.Nombre
+
+MERGE (e:Edificio {número_edificio: toInteger(csv_line.num_edificio)})
+SET 	e.nombre_barrio = csv_line.desc_barrio_local,
+	e.via = csv_line.clase_vial_edificio, 
+	e.postal = toInteger(csv_line.Cod_Postal)
+
+MERGE (b:Barrio {nombre_barrio: csv_line.desc_barrio_local})
+SET 	b.id_distrito = toInteger(csv_line.id_distrito_local)
+
+MERGE (d:Distrito {id_distrito: toInteger(csv_line.id_distrito_local)})
+SET 	d.nombre = csv_line.desc_distrito_local
+
+
+
+// Crear las relaciones entre los nodos
+
+MATCH(d:Distrito), (b:Barrio) 
+WHERE d.id_distrito=b.id_distrito 
+CREATE (d)-[x:es_distrito_de]->(b) 
+RETURN x
+
+MATCH(b:Barrio), (e:Edificio) 
+WHERE b.nombre_barrio=e.nombre_barrio 
+CREATE (b)-[x:es_barrio_de]->(e) 
+RETURN x
+
+MATCH(e:Edificio), (l:Local) 
+WHERE e.número_edificio=l.número_edificio 
+CREATE (e)-[x:tiene_comercio_de]->(l) 
+RETURN x
+
+MATCH(l:Local), (t:Terraza) 
+WHERE l.id_local=t.id_local 
+CREATE (l)-[x:tiene]->(t) 
+RETURN x
+
+
+
+// Consultas
+
+MATCH x=()-->() RETURN x
+
+MATCH (d:Distrito)-[:es_distrito_de]->(b:Barrio)-[:es_barrio_de]->(e:Edificio)-[:tiene_comercio_de]->(l:Local)-[:tiene]->(t:Terraza)
+WHERE d.nombre IN ["SALAMANCA"]
+RETURN d, b, e, l, t
+
+
+
+// Eliminar todo
+/*
+MATCH (n)
+DETACH DELETE n
+*/
