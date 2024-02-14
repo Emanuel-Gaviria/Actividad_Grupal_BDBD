@@ -1,3 +1,14 @@
+/* 
+Actividad grupal: Uso avanzado de bases de datos NoSQL
+
+Integrantes de equipo:
+	- Emanuel Gaviria Vargas
+	- Bellsen Severino Navarro Rodríguez
+	- Moisés David Chiari Almengor
+*/
+
+
+
 // Crear nodos con sus atributos
 
 LOAD CSV WITH HEADERS FROM "file:///actividad_grupal/Terrazas.csv" AS csv_line
